@@ -7,7 +7,8 @@ Checks solutions to Project Euler problems offline.
 
 import os
 import json
-from pyDes import *
+from pyDes import triple_des
+from threading import Thread
 
 key = '03b5660c7c16a07b'
 
@@ -36,23 +37,36 @@ def process_solutions():
     ff = open('solutions-encrypted-last', 'w')
     ff.write(enc_str)
     ff.close()
+    
 
 
+
+class loader(Thread):
+    
+    def run(self):
+        cdir = os.path.dirname(__file__)
+        txtFile = open(os.path.join(cdir, "solutions-encrypted-last"), "r")
+        txtStr = txtFile.read()
+        txtFile.close()
+        plain_text = triple_des(key).decrypt(txtStr, padmode=2)
+        self.solutions = loadJSON(plain_text)
+    
+    def getsols(self):
+        return self.solutions
+    
 def main():
     eof = ["exit", "quit", "q", "c"]
-    dir = os.path.dirname(__file__)
+    
 
     current = raw_input("What problem are you currently working on? ")
     if current.lower() in eof: exit(0)
 
-
+    loader_th = loader()
+    loader_th.start()
     proposed = raw_input("Enter solution: ")
 
-    txtFile = open(os.path.join(dir, "solutions-encrypted-last"), "r")
-    txtStr = txtFile.read()
-    txtFile.close()
-    plain_text = triple_des(key).decrypt(txtStr, padmode=2)
-    solutions = loadJSON(plain_text)
+    loader_th.join()
+    solutions = loader_th.getsols()
 
     if proposed.lower() in eof:
         exit(0)
