@@ -57,26 +57,30 @@ class loader(Thread):
 def main():
     eof = ["exit", "quit", "q", "c"]
     
-
+    loader_th = loader()
+    loader_th.start()
     current = raw_input("What problem are you currently working on? ")
     if current.lower() in eof: exit(0)
 
-    loader_th = loader()
-    loader_th.start()
+    
     proposed = raw_input("Enter solution: ")
 
     loader_th.join()
     solutions = loader_th.getsols()
-
-    if proposed.lower() in eof:
-        exit(0)
-    elif current not in solutions:
-        print 'We dont have the solution for that problem yet :('
-    elif proposed == solutions[current]:
-        print "Correct!\n"
-    else:
-        print "Sorry, but the answer you gave appears to be incorrect." 
-
+    
+    while proposed.lower() not in eof:
+        if current not in solutions:
+            print 'We dont have the solution for that problem yet :('
+        elif proposed == solutions[current]:
+            print "Correct!\n"
+        else:
+            print "Sorry, but the answer you gave appears to be incorrect." 
+        current = raw_input("What problem are you currently working on? ")
+        if current.lower() in eof: break
+        proposed = raw_input("Enter solution: ")
+        
+    return 0
 if __name__ == "__main__":
     #process_solutions()
-    main()
+    import sys
+    sys.exit(main())
